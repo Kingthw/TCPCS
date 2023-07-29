@@ -29,7 +29,6 @@ public class TCPClient2 {
             }
             //发送数据
             outSW.write(str);
-            socket.shutdownOutput();
             outSW.flush();
 
             while ((b = isr.read()) != -1) {
@@ -38,6 +37,7 @@ public class TCPClient2 {
             String UpData = sb.toString();
             System.out.println("修改后的数据为："+UpData);
         }
+        socket.shutdownOutput();
         isr.close();
         outSW.close();
         socket.close();
