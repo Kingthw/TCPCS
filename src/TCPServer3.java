@@ -1,7 +1,7 @@
-import java.io.*;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.UUID;
+import java.util.concurrent.*;
 
 /**
  * @author Kingthw
@@ -11,26 +11,23 @@ public class TCPServer3 {
     public static void main(String[] args) throws IOException {
         //创建服务端对象
         ServerSocket serverSocket = new ServerSocket(12000);
+        //创建线程池对象
+        ThreadPoolExecutor pool = new ThreadPoolExecutor(3, 9,
+                60, TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(2),
+                Executors.defaultThreadFactory(),
+                new ThreadPoolExecutor.AbortPolicy());
 
-        //等待客户端连接
-        Socket socket = serverSocket.accept();
-
-        //读取数据保存到本地文件中
-        String name = UUID.randomUUID().toString().replace("-", "");
-        BufferedInputStream bis = new BufferedInputStream(socket.getInputStream());
-        BufferedOutputStream bos = new BufferedOutputStream(
-                new FileOutputStream("E:\\javaspace\\java基础\\day16-code\\ServerImg\\"+name+".jpg"));
-        int len;
-        byte[] bytes = new byte[1024];
-        while ((len = bis.read(bytes)) != -1) {
-            bos.write(bytes, 0, len);
+        while (true) {
+            //等待客户端连接
+            Socket socket = serverSocket.accept();
+/*            //开启一条线程
+            //一个客户端对应一条线程
+            new Thread(new MyRunnable(socket)).start();*/
+            //线程池优化
+            //一个客户端对应于线程池中的一条线程
+            pool.submit(new MyRunnable(socket));
         }
-
-        //反馈给客户端
-        PrintWriter pw = new PrintWriter(socket.getOutputStream(),true);
-        pw.println("上传成功");
-
-        socket.close();
 //        serverSocket.close();
     }
 }
